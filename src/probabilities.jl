@@ -1,11 +1,11 @@
 export renewal_counting
 """
 ```julia
-renewal_counting(n::Int, t, pdf, first_pdf = pdf) -> realt, Qn, Pn
+renewal_counting(n::Int, t, pdf, first_pdf = pdf) -> totalt, Qn, Pn
 ```
 Recursively calculates the p.d.f. of the `n`-th event, `Qn`, happening at time
-`realt`, as
-well as the probability to have `n` events, `Pn`, occuring up to time `realt`.
+`totalt`, as
+well as the probability to have `n` events, `Pn`, occuring up to time `totalt`.
 # Inputs:
 1. `n::Int` : The number of events you care about. Notice that everything
   starting from `k=1` up to `k=n` will be calculated (and returned).
@@ -21,11 +21,11 @@ well as the probability to have `n` events, `Pn`, occuring up to time `realt`.
   *first* event, in
   case it is different from the general p.d.f.
 # Outputs:
-1. `realt::Vector` : Time vector of length: `L = l*(n+1) - n` where `l = length(t)`
+1. `totalt::Vector` : Time vector of length: `L = l*(n+1) - n` where `l = length(t)`
 2. `Qn::Matrix` : A `L×n` matrix. Each column `j` is the **p.d.f.** of the
-  `j`-th event versus `realt`,  for `j in 1:n`
+  `j`-th event versus `totalt`,  for `j in 1:n`
 3. `Pn::Matrix` : A `L×(n+1)` matrix. Each column `j` is the **probability** to
-  have a total of `j` events up to time `realt` for `j in 0:n`.
+  have a total of `j` events up to time `totalt` for `j in 0:n`.
 
 Notice that the output `Qn` represents probability density function, while the
 output `Pn` represents commulative probability function (*direct* probability).
@@ -54,12 +54,12 @@ using a re-normalized copy instead...")
 
 
   #this is the time vector my functions will be functions of
-  realt = 0:stepp:ceil((n+1)*tmax, -Int(mag(stepp)))
-  L = length(realt) #should be l*n+1 - n because you only count 0.0 once
-  append!(f, zeros(L - l)) # extend f for realt
+  totalt = 0:stepp:ceil((n+1)*tmax, -Int(mag(stepp)))
+  L = length(totalt) #should be l*n+1 - n because you only count 0.0 once
+  append!(f, zeros(L - l)) # extend f for totalt
   # Calculate average event time:
-  κ = trapezint(stepp, realt.*f)
-  W = zeros(realt)
+  κ = trapezint(stepp, totalt.*f)
+  W = zeros(totalt)
   # Calculate general survival function W:
   for i in 1:l
     W[i] = 1 - trapezint(t[1:i], f[1:i])
@@ -70,7 +70,7 @@ using a re-normalized copy instead...")
   P = zeros(eltype(t), L, n+1)
   # P_0, probability to have 0 events up to time t (identical to
   # survival function of first event)
-  W = zeros(realt)
+  W = zeros(totalt)
   # Calculate general survival function W:
   for i in 1:l
     P[i, 1] = 1 - trapezint(t[1:i], first_pdf[1:i])
@@ -89,9 +89,9 @@ using a re-normalized copy instead...")
       reverse_Qnm1 = reverse(Q[:,j-1])
       for t_idx in 2:L #no reason to start from 1, gives 0 anyway
         Q[t_idx, j] =
-        trapezint(realt[1:t_idx], f[1:t_idx].*reverse_Qnm1[(L-t_idx+1):end])
+        trapezint(totalt[1:t_idx], f[1:t_idx].*reverse_Qnm1[(L-t_idx+1):end])
       end
-      qint = trapezint(realt, Q[:, j])
+      qint = trapezint(totalt, Q[:, j])
       if !isapprox(qint, 1; rtol = 1e-14)
         Q[:, j] ./= qint
       end
@@ -101,8 +101,8 @@ using a re-normalized copy instead...")
     reverse_Qn = reverse(Q[:,j])
     for t_idx in 2:L #t_idx is the timepoint t I want to find the Pn(t)
       P[t_idx, j+1] =
-      trapezint(realt[1:t_idx], W[1:t_idx].*reverse_Qn[(L-t_idx+1):end])
+      trapezint(totalt[1:t_idx], W[1:t_idx].*reverse_Qn[(L-t_idx+1):end])
     end
   end
-  return realt, Q, P
+  return totalt, Q, P
 end
