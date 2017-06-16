@@ -1,10 +1,11 @@
 export renewal_counting
 """
 ```julia
-renewal_counting(n::Int, t, pdf, first_pdf = pdf)
+renewal_counting(n::Int, t, pdf, first_pdf = pdf) -> realt, Qn, Pn
 ```
-Recursively calculates the p.d.f. of the `n`-th event happening at time `t`, as
-well as the probability to have `n` events occuring up to time `t`.
+Recursively calculates the p.d.f. of the `n`-th event, `Qn`, happening at time
+`realt`, as
+well as the probability to have `n` events, `Pn`, occuring up to time `realt`.
 # Inputs:
 1. `n::Int` : The number of events you care about. Notice that everything
   starting from `k=1` up to `k=n` will be calculated (and returned).
@@ -44,6 +45,7 @@ using a re-normalized copy instead...")
     f ./= integral
   else
     f = pdf
+  end
   try
     stepp = step(t)
   catch
